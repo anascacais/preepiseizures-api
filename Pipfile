@@ -11,6 +11,7 @@ fastapi = "*"
 uvicorn = "*"
 python-jose = {extras = ["cryptography"], version = "*"}
 passlib = "*"
+python-multipart = "*"
 
 [requires]
 python_version = "3.10"

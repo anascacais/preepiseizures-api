@@ -6,16 +6,11 @@ from jose import JWTError, jwt
 from passlib.context import CryptContext
 from datetime import datetime, timedelta
 import mysql.connector
-from config import DB_HOST, DB_PORT, DB_USER, DB_PASSWORD, DB_NAME
+from config import DB_HOST, DB_PORT, DB_USER, DB_PASSWORD, DB_NAME, SECRET_KEY, ALGORITHM
 
 app = FastAPI()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
-
-# Dummy secret and settings
-SECRET_KEY = "supersecretkey"
-ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
-
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 def get_db_connection():
@@ -84,19 +79,16 @@ def get_current_user(token: str = Depends(oauth2_scheme)):
 # Protected route to files
 @app.get("/files")
 def get_files(
-    min_events: Optional[int] = Query(0, ge=0),
-    current_user: dict = Depends(get_current_user)  # This enforces authentication
-):
+    min_events: Optional[int] = Query(0, ge=0),):
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
 
     try:
-        # Example: filter files by event_count and only those accessible by current_user
         query = """
             SELECT * FROM files 
-            WHERE event_count >= %s AND owner_id = %s
+            WHERE event_count >= %s
         """
-        cursor.execute(query, (min_events, current_user["id"]))
+        cursor.execute(query, (min_events,))
         results = cursor.fetchall()
         return results
     finally:

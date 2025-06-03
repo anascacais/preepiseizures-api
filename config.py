@@ -9,6 +9,9 @@ DB_USER = os.getenv("DB_USER")
 DB_PASSWORD = os.getenv("DB_PASSWORD")
 DB_NAME = os.getenv("DB_NAME")
 
+SECRET_KEY = os.getenv("SECRET_KEY")
+ALGORITHM = os.getenv("ALGORITHM")
+
 SMB_HOST = os.getenv("SMB_HOST")
 SMB_SHARE = os.getenv("SMB_SHARE")
 SMB_USERNAME = os.getenv("SMB_USERNAME")
