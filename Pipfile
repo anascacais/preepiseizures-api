@@ -5,13 +5,13 @@ name = "pypi"
 
 [packages]
 mysql-connector-python = "*"
-smbprotocol = "*"
 python-dotenv = "*"
 fastapi = "*"
 uvicorn = "*"
 python-jose = {extras = ["cryptography"], version = "*"}
 passlib = "*"
 python-multipart = "*"
+smbprotocol = "*"
 
 [requires]
 python_version = "3.10"

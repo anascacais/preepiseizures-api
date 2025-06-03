@@ -6,12 +6,22 @@ from jose import JWTError, jwt
 from passlib.context import CryptContext
 from datetime import datetime, timedelta, timezone
 import mysql.connector
-from config import DB_HOST, DB_PORT, DB_USER, DB_PASSWORD, DB_NAME, SECRET_KEY, ALGORITHM
+from fastapi.responses import StreamingResponse
+import io
+import smbclient
+
+from config import DB_HOST, DB_PORT, DB_USER, DB_PASSWORD, DB_NAME, SECRET_KEY, ALGORITHM, SMB_HOST, SMB_USER, SMB_PASSWORD, SMB_SHARE
+
+# Register your SMB server credentials
+smbclient.ClientConfig(username=SMB_USER, password=SMB_PASSWORD)
+
 
 app = FastAPI()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+
 
 def get_db_connection():
     try:
@@ -90,6 +100,37 @@ def get_files(
         cursor.execute(query, (min_events,))
         results = cursor.fetchall()
         return results
+    finally:
+        cursor.close()
+        conn.close()
+
+
+@app.get("/download/{file_id}")
+def download_file(file_id: int):
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    try:
+        query = """
+            SELECT * FROM files WHERE id = %s
+        """
+        cursor.execute(query, (file_id,))
+        file_entry = cursor.fetchone()
+
+        if not file_entry:
+            raise HTTPException(status_code=404, detail="File not found")
+        
+        smb_path = rf"{SMB_SHARE}\{file_entry['smb_path']}"
+        print(smb_path)
+        filename = file_entry["filename"]
+
+        with smbclient.open_file(smb_path, mode='rb') as remote_file:
+            data = remote_file.read()
+
+        return StreamingResponse(io.BytesIO(data), media_type="application/octet-stream", headers={
+            "Content-Disposition": f"attachment; filename={filename}"
+        })
+
     finally:
         cursor.close()
         conn.close()
