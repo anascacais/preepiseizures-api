@@ -9,6 +9,7 @@ import mysql.connector
 from fastapi.responses import StreamingResponse
 import io
 import smbclient
+import zipstream
 
 from config import DB_HOST, DB_PORT, DB_USER, DB_PASSWORD, DB_NAME, SECRET_KEY, ALGORITHM, SMB_HOST, SMB_USER, SMB_PASSWORD, SMB_SHARE
 
@@ -20,8 +21,6 @@ app = FastAPI()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
-
 
 def get_db_connection():
     try:
@@ -130,6 +129,48 @@ def download_file(file_id: int):
         return StreamingResponse(io.BytesIO(data), media_type="application/octet-stream", headers={
             "Content-Disposition": f"attachment; filename={filename}"
         })
+
+    finally:
+        cursor.close()
+        conn.close()
+
+
+@app.get("/download")
+def download_files(file_ids: list[int] = Query(...)):
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    try:
+        # Fetch all files matching the given IDs
+        format_strings = ','.join(['%s'] * len(file_ids))
+        query = f"SELECT * FROM files WHERE id IN ({format_strings})"
+        cursor.execute(query, tuple(file_ids))
+        files = cursor.fetchall()
+
+        if not files:
+            raise HTTPException(status_code=404, detail="No files found")
+
+        z = zipstream.ZipFile(mode='w', compression=zipstream.ZIP_DEFLATED)
+
+        # Add files to ZIP stream one by one
+        for f in files:
+            smb_path = rf"{SMB_SHARE}\{f['smb_path']}"
+            filename = f['filename']
+
+            def file_generator(path):
+                with smbclient.open_file(path, mode='rb') as remote_file:
+                    chunk = remote_file.read(4096)
+                    while chunk:
+                        yield chunk
+                        chunk = remote_file.read(4096)
+
+            z.write_iter(filename, file_generator(smb_path))
+
+        return StreamingResponse(
+            z,
+            media_type="application/zip",
+            headers={"Content-Disposition": "attachment; filename=files.zip"}
+        )
 
     finally:
         cursor.close()
