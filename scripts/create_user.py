@@ -3,17 +3,18 @@ import mysql.connector
 from passlib.context import CryptContext
 from dotenv import load_dotenv
 import os
+from config import DB_HOST, DB_USER, DB_PASSWORD, DB_NAME
 
-load_dotenv()  # Load .env variables
+load_dotenv() 
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 def get_db_connection():
     return mysql.connector.connect(
-        host=os.getenv("DB_HOST", "localhost"),
-        user=os.getenv("DB_USER"),
-        password=os.getenv("DB_PASSWORD"),
-        database=os.getenv("DB_NAME")
+        host=DB_HOST,
+        user=DB_USER,
+        password=DB_PASSWORD,
+        database=DB_NAME,
     )
 
 def create_user(username: str, password: str, full_name=None, email=None):
