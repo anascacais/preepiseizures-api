@@ -1,3 +1,0 @@
-1   patientid1  filename1.csv   2   2019-01-12 12:05:02
-2   patientid1  filename2.csv   0   2019-01-12 13:05:12
-3   patientid2  filename3.csv   1   2019-12-03 01:12:13
