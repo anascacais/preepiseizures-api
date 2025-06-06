@@ -8,15 +8,6 @@ CREATE TABLE users (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE IF NOT EXISTS files (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    patient_id VARCHAR(50),
-    filename VARCHAR(255),
-    smb_path VARCHAR(255),
-    event_count INT,
-    starttime DATETIME
-);
-
 CREATE TABLE IF NOT EXISTS patients (
     patient_id INT AUTO_INCREMENT PRIMARY KEY, 
     patient_code VARCHAR(16) UNIQUE NOT NULL,                              
@@ -40,12 +31,40 @@ CREATE TABLE patient_diagnoses (
 
 
 CREATE TABLE IF NOT EXISTS sessions (
-    session_id INT AUTO_INCREMENT PRIMARY KEY,       -- Unique session ID
-    patient_id VARCHAR(64),                          -- FK to patients.patient_id
-    hospital_name TEXT,                              -- Name or code of the hospital
-    start_time DATETIME,                             -- Start of the session
-    end_time DATETIME,                               -- End of the session
+    session_id INT AUTO_INCREMENT PRIMARY KEY,      
+    patient_id INT,                         
+    hospital_code VARCHAR(255),                              
+    start_time DATETIME,                             
+    end_time DATETIME,                    
     FOREIGN KEY (patient_id) REFERENCES patients(patient_id)
         ON DELETE CASCADE
-        ON UPDATE CASCADE
+        ON UPDATE CASCADE,
+    UNIQUE KEY unique_patient_hospital_start (patient_id, hospital_code, start_time)
+);
+
+
+CREATE TABLE IF NOT EXISTS records (
+    record_id INT AUTO_INCREMENT PRIMARY KEY,      
+    session_id INT,
+    file_name VARCHAR(255),
+    smb_path VARCHAR(255),                        
+    start_time DATETIME,                             
+    end_time DATETIME,                          
+    FOREIGN KEY (session_id) REFERENCES sessions(session_id)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE,
+    UNIQUE KEY unique_session_start (session_id, start_time)
+);
+
+CREATE TABLE IF NOT EXISTS events (
+    event_id INT AUTO_INCREMENT PRIMARY KEY,
+    record_id INT,
+    onset_time DATETIME,
+    offset_time DATETIME,
+    event_name VARCHAR(255),
+    annotations TEXT,
+    FOREIGN KEY (record_id) REFERENCES records(record_id)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE,
+    UNIQUE KEY unique_record_onset (record_id, onset_time)
 );

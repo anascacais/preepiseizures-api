@@ -1,6 +1,4 @@
 import csv
-import os
-from hashlib import sha256
 import mysql.connector
 from dotenv import load_dotenv
 from config import DB_HOST, DB_USER, DB_PASSWORD, DB_NAME
