@@ -46,14 +46,16 @@ CREATE TABLE IF NOT EXISTS sessions (
 CREATE TABLE IF NOT EXISTS records (
     record_id INT AUTO_INCREMENT PRIMARY KEY,      
     session_id INT,
-    file_name VARCHAR(255),
-    smb_path VARCHAR(255),                        
+    file_name VARCHAR(255) NOT NULL,
+    file_extension VARCHAR(255) NOT NULL,
+    smb_path VARCHAR(255) NOT NULL,
+    modality ENUM('hospital_video', 'hospital_eeg', 'wearable', 'report') NOT NULL,   
     start_time DATETIME,                             
     end_time DATETIME,                          
     FOREIGN KEY (session_id) REFERENCES sessions(session_id)
         ON DELETE CASCADE
         ON UPDATE CASCADE,
-    UNIQUE KEY unique_session_start (session_id, start_time)
+    UNIQUE KEY unique_session_name_type (session_id, file_name, file_extension)
 );
 
 CREATE TABLE IF NOT EXISTS events (

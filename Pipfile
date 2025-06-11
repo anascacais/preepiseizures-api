@@ -13,6 +13,7 @@ passlib = "*"
 python-multipart = "*"
 smbprotocol = "*"
 zipstream-new = "*"
+pymediainfo = "*"
 
 [requires]
 python_version = "3.10"
