@@ -1,5 +1,5 @@
 # third-party
-from fastapi import APIRouter, Query, HTTPException
+from fastapi import APIRouter, Path, Query, HTTPException
 from fastapi.responses import StreamingResponse
 import io
 import smbclient
@@ -7,13 +7,13 @@ import zipstream
 
 # local
 from app.database import get_db_connection
-from config import SMB_SHARE
+from app.config import SMB_SHARE
 
 
 router = APIRouter(prefix='/download', tags=['download'])
 
 @router.get("/{record_id}", summary="Download record", description="Download a single record by ID")
-def download_file(record_id: int = Query(description="Record ID")):
+def download_file(record_id: int = Path(..., description="Record ID")):
     """
     Download a single record by ID.
 
@@ -48,7 +48,7 @@ def download_file(record_id: int = Query(description="Record ID")):
 
 
 @router.get("/", summary="Download records", description="Download multiple records by ID into a zip")
-def download_files(record_ids: list[int] = Query(description="List with record IDs")):
+def download_files(record_ids: list[int] = Query(..., description="List with record IDs")):
     """
     Download multiple records by ID into a zip.
 

@@ -3,7 +3,7 @@ import mysql.connector
 from passlib.context import CryptContext
 from dotenv import load_dotenv
 import os
-from config import DB_HOST, DB_USER, DB_PASSWORD, DB_NAME
+from app.config import DB_HOST, DB_USER, DB_PASSWORD, DB_NAME
 
 load_dotenv() 
 

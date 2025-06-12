@@ -9,7 +9,7 @@ from passlib.context import CryptContext
 
 # local
 from app.database import get_db_connection
-from config import SECRET_KEY, ALGORITHM
+from app.config import SECRET_KEY, ALGORITHM
 
 
 router = APIRouter(prefix='/token', tags=['token'])

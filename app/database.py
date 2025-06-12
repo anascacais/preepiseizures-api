@@ -3,7 +3,7 @@ import mysql.connector
 from fastapi import HTTPException
 
 # local
-from config import DB_HOST, DB_PORT, DB_USER, DB_PASSWORD, DB_NAME
+from app.config import DB_HOST, DB_PORT, DB_USER, DB_PASSWORD, DB_NAME
 
 def get_db_connection():
     try:

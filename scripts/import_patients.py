@@ -1,7 +1,7 @@
 import csv
 import mysql.connector
 from dotenv import load_dotenv
-from config import DB_HOST, DB_USER, DB_PASSWORD, DB_NAME
+from app.config import DB_HOST, DB_USER, DB_PASSWORD, DB_NAME
 
 load_dotenv()
 

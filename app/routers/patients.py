@@ -1,5 +1,5 @@
 # third-party
-from fastapi import APIRouter, HTTPException,Query
+from fastapi import APIRouter, HTTPException, Path
 
 # local
 from app.database import get_db_connection
@@ -7,7 +7,7 @@ from app.database import get_db_connection
 router = APIRouter(prefix='/patients', tags=['patients'])
 
 @router.get("/{patient_code}/sessions", summary="Get sessions", description="Retrieve all sessions for a patient")
-def get_sessions(patient_code: str = Query(description='4-letter code identifying the patient')):
+def get_sessions(patient_code: str = Path(..., description='4-letter code identifying the patient')):
     """
     Retrieve all sessions for a patient.
 

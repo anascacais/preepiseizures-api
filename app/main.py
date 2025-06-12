@@ -7,7 +7,7 @@ import smbclient
 
 # local
 from app.routers import records, download, events, token, patients
-from config import SMB_USER, SMB_PASSWORD
+from app.config import SMB_USER, SMB_PASSWORD
 
 # Register your SMB server credentials
 smbclient.ClientConfig(username=SMB_USER, password=SMB_PASSWORD)
