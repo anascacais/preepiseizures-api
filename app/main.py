@@ -1,3 +1,6 @@
+# built-in
+from pathlib import Path
+
 # third-party
 from fastapi import FastAPI
 import smbclient
@@ -8,7 +11,22 @@ from config import SMB_USER, SMB_PASSWORD
 
 # Register your SMB server credentials
 smbclient.ClientConfig(username=SMB_USER, password=SMB_PASSWORD)
-app = FastAPI()
+
+description = Path("README.md").read_text()
+
+app = FastAPI(
+    title="PreEpiSeizuresAPI",
+    description=description,
+    summary="RESTful API to query metadata about hospital records.",
+    version="1.0.0",
+    contact={
+        "name": "Ana Sofia Carmo",
+        "email": "anascacais@gmail.com",
+    },
+    license_info={
+        "name": "BSD 3-Clause License",
+    },
+)
 
 app.include_router(token.router)
 app.include_router(records.router)

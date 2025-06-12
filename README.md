@@ -1,7 +1,10 @@
 # 🏥 PreEpiSeizures API
 
-This project provides a RESTful API to manage and query metadata about hospital records.  
-It connects to a MySQL database and can optionally retrieve records stored on a remote NAS via the SMB protocol.
+This project provides a RESTful API to query metadata about hospital records. It connects to a MySQL database and can optionally retrieve records stored on a remote NAS via the SMB protocol.
+
+Accompanying client API available at [anascacais/preepiseizures-api-client](https://github.com/anascacais/preepiseizures-api-client).
+
+Developed under the PreEpiSeizures project.
 
 ---
 
@@ -74,15 +77,13 @@ Or connect manually and paste the contents of schema.sql.
 ## 🚀 Run the API
 
 ```bash
-uvicorn app.main:app --host 0.0.0.0 --port 8000
+pipenv run uvicorn app.main:app --host 0.0.0.0 --port 8000
 ```
 
 Access the docs at: http://localhost:8000/docs
 
 ## 🌍 Deployment Suggestions
 
-- Use Nginx to reverse proxy to localhost:8000
-- Secure with HTTPS using Let's Encrypt
 - Expose only the API port (not the MySQL port) to external users
 - Keep .env secrets out of the repo
 

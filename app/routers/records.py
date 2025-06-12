@@ -18,13 +18,38 @@ class ModalityEnum(str, Enum):
     hospital_video = "hospital_video"
     report = "report"
 
-@router.get("/")
+
+@router.get("/records", summary="Get records", description="Retrieve all records with optional filters.")
 def get_records(
-    patient_code: Optional[str] = Query(None),
-    session_date: Optional[datetime] = Query(None),
-    session_id: Optional[int] = Query(None),
-    modality: Optional[ModalityEnum] = Query(None)
+    patient_code: Optional[str] = Query(None, description="Code identifying the patient"),
+    session_date: Optional[datetime] = Query(None, description="Filter by session datetime"),
+    modality: Optional[str] = Query(None, description="Type of data modality (e.g., hospital_eeg, wearable, video)")
 ):
+    """
+    Retrieve records based on filters.
+
+    - **patient_code**: Unique code for the patient
+    - **session_date**: Date/time of the session
+    - **modality**: Type of data (hospital_eeg, wearable, video)
+    """
+
+
+@router.get("/", summary="Get records", description="Retrieve all records with optional filters, including by patient code, session, or modality.")
+def get_records(
+    patient_code: Optional[str] = Query(None, description='4-letter code identifying the patient'),
+    session_date: Optional[datetime] = Query(None, description='Session datetime (in the format YYYY-MM-DD HH:MM:SS) which should be within the range of start_time and end_time of desired session'),
+    session_id: Optional[int] = Query(None, description='Session ID'),
+    modality: Optional[ModalityEnum] = Query(None, description='Type of data modality (e.g., hospital_eeg, wearable, hospital_video, report)')
+):
+    """
+    Retrieve all records with optional filters, including by patient code, session, or modality.
+
+    - **patient_code**: 4-letter code identifying the patient
+    - **session_date**: Session datetime (in the format YYYY-MM-DD HH:MM:SS) which should be within the range of start_time and end_time of desired session
+    - **session_id**: Session ID
+    - **modality**: Type of data modality (e.g., hospital_eeg, wearable, hospital_video, report)
+    """
+
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
 
