@@ -19,21 +19,6 @@ class ModalityEnum(str, Enum):
     report = "report"
 
 
-@router.get("/records", summary="Get records", description="Retrieve all records with optional filters.")
-def get_records(
-    patient_code: Optional[str] = Query(None, description="Code identifying the patient"),
-    session_date: Optional[datetime] = Query(None, description="Filter by session datetime"),
-    modality: Optional[str] = Query(None, description="Type of data modality (e.g., hospital_eeg, wearable, video)")
-):
-    """
-    Retrieve records based on filters.
-
-    - **patient_code**: Unique code for the patient
-    - **session_date**: Date/time of the session
-    - **modality**: Type of data (hospital_eeg, wearable, video)
-    """
-
-
 @router.get("/", summary="Get records", description="Retrieve all records with optional filters, including by patient code, session, or modality.")
 def get_records(
     patient_code: Optional[str] = Query(None, description='4-letter code identifying the patient'),

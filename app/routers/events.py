@@ -11,12 +11,19 @@ from app.routers.checks import check_session_date_id
 
 router = APIRouter(prefix='/events', tags=['events'])
 
-@router.get("/")
+@router.get("/", summary="Get events", description="Retrieve all events with optional filters, including by patient code and session.")
 def get_events(
-    patient_code: Optional[str] = Query(None),
-    session_date: Optional[datetime] = Query(None),
-    session_id: Optional[int] = Query(None)
+    patient_code: Optional[str] = Query(None, description='4-letter code identifying the patient'),
+    session_date: Optional[datetime] = Query(None, description='Session datetime (in the format YYYY-MM-DD HH:MM:SS) which should be within the range of start_time and end_time of desired session'),
+    session_id: Optional[int] = Query(None, description='Session ID'),
 ):
+    """
+    Retrieve all events with optional filters, including by patient code and session.
+
+    - **patient_code**: 4-letter code identifying the patient
+    - **session_date**: Session datetime (in the format YYYY-MM-DD HH:MM:SS) which should be within the range of start_time and end_time of desired session
+    - **session_id**: Session ID
+    """
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
 

@@ -12,8 +12,13 @@ from config import SMB_SHARE
 
 router = APIRouter(prefix='/download', tags=['download'])
 
-@router.get("/{record_id}")
-def download_file(record_id: int):
+@router.get("/{record_id}", summary="Download record", description="Download a single record by ID")
+def download_file(record_id: int = Query(description="Record ID")):
+    """
+    Download a single record by ID.
+
+    - **record_id**: Record ID
+    """
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
 
@@ -42,8 +47,13 @@ def download_file(record_id: int):
         conn.close()
 
 
-@router.get("/")
-def download_files(record_ids: list[int] = Query(...)):
+@router.get("/", summary="Download records", description="Download multiple records by ID into a zip")
+def download_files(record_ids: list[int] = Query(description="List with record IDs")):
+    """
+    Download multiple records by ID into a zip.
+
+    - **record_id**: List with record IDs
+    """
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
 
