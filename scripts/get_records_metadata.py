@@ -19,8 +19,8 @@ def get_db_connection():
 def _get_metadata_from_name(file):
     file_name, file_extension = os.path.splitext(file)
     modality_map = {
-        'hospital_video': ['.mpe', '.wmv'],
-        'hospital_eeg': ['.vhdr', '.vmrk', '.eeg', '.edf', '.bdf', '.gdf', '.cnt', '.egi', '.mff', '.set', '.fdt', '.data', '.nxe', '.lay', '.dat', '.eeg', '.21e', '.pnt', '.log', '.xdf', '.xdfz'],
+        'hospital_video': ['.mpe', '.wmv', '.avi'],
+        'hospital_eeg': ['.vhdr', '.vmrk', '.eeg', '.edf', '.bdf', '.gdf', '.cnt', '.egi', '.mff', '.set', '.fdt', '.data', '.nxe', '.lay', '.dat', '.eeg', '.21e', '.pnt', '.log', '.xdf', '.xdfz', '.trc'],
         'wearable': ['.txt'],
         'report': ['.doc', '.docx', '.pdf']
     }

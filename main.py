@@ -175,3 +175,145 @@ def download_files(file_ids: list[int] = Query(...)):
     finally:
         cursor.close()
         conn.close()
+
+
+@app.get("/patients/{patient_code}/sessions")
+def get_sessions(patient_code: str):
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    try:
+        query = """
+            SELECT s.session_id
+            FROM patients p
+            JOIN sessions s ON p.patient_id = s.patient_id
+            WHERE p.patient_code = %s
+        """
+        cursor.execute(query, (patient_code,))
+        results = cursor.fetchall()
+
+        if not results:
+            raise HTTPException(status_code=404, detail="No sessions found for this patient code.")
+
+        return results
+    finally:
+        cursor.close()
+        conn.close()
+
+
+def _check_session_date_id(cursor, session_id, session_date):
+    cursor.execute(
+        "SELECT start_time, end_time FROM sessions WHERE session_id = %s",
+        (session_id,)
+    )
+    session = cursor.fetchone()
+    if not session:
+        raise HTTPException(status_code=404, detail="Session ID not found.")
+
+    try:
+        if not (session["start_time"] <= session_date < session["end_time"]):
+            raise HTTPException(
+                status_code=400,
+                detail="Provided session_date is outside the start/end time of the given session_id."
+            )
+    except TypeError:
+        pass
+
+@app.get("/records")
+def get_records(
+    patient_code: Optional[str] = Query(None),
+    session_date: Optional[datetime] = Query(None),
+    session_id: Optional[int] = Query(None),
+    modality: Optional[str] = Query(None)
+):
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    try:
+        # Consistency check if both session_id and session_date are provided
+        if session_id and session_date:
+            _check_session_date_id(cursor, session_id, session_date)
+
+        query = """
+            SELECT r.record_id
+            FROM records r
+            JOIN sessions s ON r.session_id=s.session_id
+            JOIN patients p ON s.patient_id=p.patient_id
+            WHERE 1=1
+        """
+        params = []
+
+        if patient_code:
+            query += " AND p.patient_code = %s"
+            params.append(patient_code)
+
+        if session_date:
+            query += " AND s.start_time <= %s AND s.end_time > %s"
+            params.extend([session_date, session_date])
+            
+        if session_id:
+            query += " AND s.session_id = %s"
+            params.append(session_id)
+
+        if modality:
+            query += " AND r.modality = %s"
+            params.append(modality)
+
+        cursor.execute(query, params)
+        results = cursor.fetchall()
+
+        if not results:
+            raise HTTPException(status_code=404, detail="No records found matching the filters.")
+        return results
+    
+    finally:
+        cursor.close()
+        conn.close()
+
+
+@app.get("/events")
+def get_events(
+    patient_code: Optional[str] = Query(None),
+    session_date: Optional[datetime] = Query(None),
+    session_id: Optional[int] = Query(None)
+):
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    try:
+        # Consistency check if both session_id and session_date are provided
+        if session_id and session_date:
+            _check_session_date_id(cursor, session_id, session_date)
+            
+        query = """
+            SELECT e.event_id, e.onset_time, e.offset_time, e.event_name, e.annotations
+            FROM events e
+            JOIN sessions s ON e.session_id=s.session_id
+            JOIN patients p ON s.patient_id=p.patient_id
+            WHERE 1=1
+        """
+        params = []
+
+        if patient_code:
+            query += " AND p.patient_code = %s"
+            params.append(patient_code)
+
+        if session_date:
+            query += " AND s.start_time <= %s AND s.end_time > %s"
+            params.extend([session_date, session_date])
+
+        if session_id:
+            query += " AND s.session_id = %s"
+            params.append(session_id)
+
+        cursor.execute(query, params)
+        results = cursor.fetchall()
+
+        if not results:
+            raise HTTPException(status_code=404, detail="No events found matching the filters.")
+        return results
+    
+    finally:
+        cursor.close()
+        conn.close()
+

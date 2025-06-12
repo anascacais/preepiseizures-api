@@ -60,13 +60,13 @@ CREATE TABLE IF NOT EXISTS records (
 
 CREATE TABLE IF NOT EXISTS events (
     event_id INT AUTO_INCREMENT PRIMARY KEY,
-    record_id INT,
+    session_id INT,
     onset_time DATETIME,
     offset_time DATETIME,
     event_name VARCHAR(255),
     annotations TEXT,
-    FOREIGN KEY (record_id) REFERENCES records(record_id)
+    FOREIGN KEY (session_id) REFERENCES sessions(session_id)
         ON DELETE CASCADE
         ON UPDATE CASCADE,
-    UNIQUE KEY unique_record_onset (record_id, onset_time)
+    UNIQUE KEY unique_session_onset (session_id, onset_time)
 );
