@@ -84,50 +84,30 @@ def get_current_user(token: str = Depends(oauth2_scheme)):
         raise credentials_exception
     return user
 
-# Protected route to files
-@app.get("/files")
-def get_files(
-    min_events: Optional[int] = Query(0, ge=0),):
+
+@app.get("/download/{record_id}")
+def download_file(record_id: int):
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
 
     try:
         query = """
-            SELECT * FROM files 
-            WHERE event_count >= %s
+            SELECT * FROM records WHERE record_id = %s
         """
-        cursor.execute(query, (min_events,))
-        results = cursor.fetchall()
-        return results
-    finally:
-        cursor.close()
-        conn.close()
+        cursor.execute(query, (record_id,))
+        entry = cursor.fetchone()
 
-
-@app.get("/download/{file_id}")
-def download_file(file_id: int):
-    conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True)
-
-    try:
-        query = """
-            SELECT * FROM files WHERE id = %s
-        """
-        cursor.execute(query, (file_id,))
-        file_entry = cursor.fetchone()
-
-        if not file_entry:
+        if not entry:
             raise HTTPException(status_code=404, detail="File not found")
         
-        smb_path = rf"{SMB_SHARE}\{file_entry['smb_path']}"
-        print(smb_path)
-        filename = file_entry["filename"]
+        smb_path = rf"{SMB_SHARE}\{entry['smb_path']}"
+        file = f"{entry['file_name']}{entry['file_extension']}"
 
         with smbclient.open_file(smb_path, mode='rb') as remote_file:
             data = remote_file.read()
 
         return StreamingResponse(io.BytesIO(data), media_type="application/octet-stream", headers={
-            "Content-Disposition": f"attachment; filename={filename}"
+            "Content-Disposition": f"attachment; filename={file}"
         })
 
     finally:
@@ -136,15 +116,15 @@ def download_file(file_id: int):
 
 
 @app.get("/download")
-def download_files(file_ids: list[int] = Query(...)):
+def download_files(record_ids: list[int] = Query(...)):
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
 
     try:
         # Fetch all files matching the given IDs
-        format_strings = ','.join(['%s'] * len(file_ids))
-        query = f"SELECT * FROM files WHERE id IN ({format_strings})"
-        cursor.execute(query, tuple(file_ids))
+        format_strings = ','.join(['%s'] * len(record_ids))
+        query = f"SELECT * FROM records WHERE record_id IN ({format_strings})"
+        cursor.execute(query, tuple(record_ids))
         files = cursor.fetchall()
 
         if not files:
@@ -155,7 +135,7 @@ def download_files(file_ids: list[int] = Query(...)):
         # Add files to ZIP stream one by one
         for f in files:
             smb_path = rf"{SMB_SHARE}\{f['smb_path']}"
-            filename = f['filename']
+            file = f"{f['file_name']}{f['file_extension']}"
 
             def file_generator(path):
                 with smbclient.open_file(path, mode='rb') as remote_file:
@@ -164,12 +144,12 @@ def download_files(file_ids: list[int] = Query(...)):
                         yield chunk
                         chunk = remote_file.read(4096)
 
-            z.write_iter(filename, file_generator(smb_path))
+            z.write_iter(file, file_generator(smb_path))
 
         return StreamingResponse(
             z,
             media_type="application/zip",
-            headers={"Content-Disposition": "attachment; filename=files.zip"}
+            headers={"Content-Disposition": "attachment; filename=records.zip"}
         )
 
     finally:
@@ -250,7 +230,7 @@ def get_records(
         if session_date:
             query += " AND s.start_time <= %s AND s.end_time > %s"
             params.extend([session_date, session_date])
-            
+
         if session_id:
             query += " AND s.session_id = %s"
             params.append(session_id)
