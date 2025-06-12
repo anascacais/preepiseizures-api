@@ -1,15 +1,15 @@
 # 🏥 PreEpiSeizures API
 
-This project provides a RESTful API to manage and query metadata about hospital files.  
-It connects to a MySQL database and can optionally retrieve files stored on a remote NAS via the SMB protocol.
+This project provides a RESTful API to manage and query metadata about hospital records.  
+It connects to a MySQL database and can optionally retrieve records stored on a remote NAS via the SMB protocol.
 
 ---
 
 ## 🚀 Features
 
-- Search files by patient, number of events, etc.
-- Access file metadata stored in a structured MySQL database
-- Download files from a remote SMB/NAS server (optional)
+- Search records by patient, number of events, etc.
+- Access record metadata stored in a structured MySQL database
+- Download records from a remote SMB/NAS server (optional)
 - Environment-variable-based configuration using `.env` file
 - Designed to run on a secure internal server or work tower
 - FastAPI-based backend, ready to be containerized or proxied via Nginx
@@ -74,7 +74,7 @@ Or connect manually and paste the contents of schema.sql.
 ## 🚀 Run the API
 
 ```bash
-uvicorn main:app --host 0.0.0.0 --port 8000
+uvicorn app.main:app --host 0.0.0.0 --port 8000
 ```
 
 Access the docs at: http://localhost:8000/docs
