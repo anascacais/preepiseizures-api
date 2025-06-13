@@ -39,7 +39,7 @@ def download_file(record_id: int = Path(..., description="Record ID")):
             data = remote_file.read()
 
         return StreamingResponse(io.BytesIO(data), media_type="application/octet-stream", headers={
-            "Content-Disposition": f"attachment; filename={file}"
+            "Content-Disposition": f"attachment; filename={entry['smb_path']}"
         })
 
     finally:
@@ -50,7 +50,7 @@ def download_file(record_id: int = Path(..., description="Record ID")):
 @router.get("/", summary="Download records", description="Download multiple records by ID into a zip")
 def download_files(record_ids: list[int] = Query(..., description="List with record IDs")):
     """
-    Download multiple records by ID into a zip.
+    Download multiple records by ID into a zip. The zip maintains original directory structure.
 
     - **record_id**: List with record IDs
     """
@@ -72,7 +72,7 @@ def download_files(record_ids: list[int] = Query(..., description="List with rec
         # Add files to ZIP stream one by one
         for f in files:
             smb_path = rf"{SMB_SHARE}\{f['smb_path']}"
-            file = f"{f['file_name']}{f['file_extension']}"
+            #file = f"{f['file_name']}{f['file_extension']}"
 
             def file_generator(path):
                 with smbclient.open_file(path, mode='rb') as remote_file:
@@ -81,7 +81,7 @@ def download_files(record_ids: list[int] = Query(..., description="List with rec
                         yield chunk
                         chunk = remote_file.read(4096)
 
-            z.write_iter(file, file_generator(smb_path))
+            z.write_iter(f['smb_path'], file_generator(smb_path))
 
         return StreamingResponse(
             z,

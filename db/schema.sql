@@ -63,10 +63,24 @@ CREATE TABLE IF NOT EXISTS events (
     session_id INT,
     onset_time DATETIME,
     offset_time DATETIME,
-    event_name VARCHAR(255),
     annotations TEXT,
     FOREIGN KEY (session_id) REFERENCES sessions(session_id)
         ON DELETE CASCADE
         ON UPDATE CASCADE,
     UNIQUE KEY unique_session_onset (session_id, onset_time)
+);
+
+
+CREATE TABLE seizure_types (
+    seizure_type_id INT AUTO_INCREMENT PRIMARY KEY,
+    name ENUM("focal", "aware", "motor", "automatisms", "impaired awareness", "tonic", "to bilateral tonic-clonic", "generalized", "absence", "tonic-clonic", "non-motor", "behavior arrest") NOT NULL
+);
+
+
+CREATE TABLE event_seizure_types (
+    event_id INT,
+    seizure_type_id INT,
+    PRIMARY KEY (event_id, seizure_type_id),
+    FOREIGN KEY (event_id) REFERENCES events(event_id),
+    FOREIGN KEY (seizure_type_id) REFERENCES seizure_types(seizure_type_id)
 );
