@@ -4,19 +4,13 @@ from datetime import datetime
 # third-party
 from fastapi import APIRouter, Query, HTTPException
 from typing import Optional
-from enum import Enum
 
 # local
 from app.database import get_db_connection
 from app.routers.checks import check_session_date_id
+from app.routers.enums import ModalityEnum
 
 router = APIRouter(prefix='/records', tags=['records'])
-
-class ModalityEnum(str, Enum):
-    hospital_eeg = "hospital_eeg"
-    wearable = "wearable"
-    hospital_video = "hospital_video"
-    report = "report"
 
 
 @router.get("/", summary="Get records", description="Retrieve all records with optional filters, including by patient code, session, or modality.")

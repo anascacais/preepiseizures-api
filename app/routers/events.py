@@ -4,28 +4,13 @@ from datetime import datetime
 # third-party
 from fastapi import APIRouter, Query, HTTPException
 from typing import Optional
-from enum import Enum
 
 # local
 from app.database import get_db_connection
 from app.routers.checks import check_session_date_id
+from app.routers.enums import SeizureTypeEnum
 
 router = APIRouter(prefix='/events', tags=['events'])
-
-class SeizureTypeEnum(str, Enum):
-    focal = "focal"
-    aware = "aware"
-    motor = "motor"
-    automatisms = "automatisms"
-    impaired_awareness = "impaired awareness"
-    tonic = "tonic"
-    to_bilateral_tonic_clonic = "to bilateral tonic-clonic"
-    generalized = "generalized"
-    absence = "absence"
-    tonic_clonic = "tonic-clonic"
-    non_motor = "non-motor"
-    behavior_arrest = "behavior arrest"
-
 
 @router.get("/", summary="Get events", description="Retrieve all events with optional filters, including by patient code, session, and event type.")
 def get_events(
@@ -55,8 +40,6 @@ def get_events(
             FROM events e
             JOIN sessions s ON e.session_id=s.session_id
             JOIN patients p ON s.patient_id=p.patient_id
-            LEFT JOIN event_seizure_types et ON e.event_id=et.event_id 
-            LEFT JOIN seizure_types st ON et.seizure_type_id=st.seizure_type_id
             WHERE 1=1
         """
         params = []
