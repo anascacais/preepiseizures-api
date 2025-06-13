@@ -4,6 +4,7 @@ from datetime import datetime
 # third-party
 from fastapi import APIRouter, Query, HTTPException
 from typing import Optional
+from enum import Enum
 
 # local
 from app.database import get_db_connection
@@ -11,11 +12,27 @@ from app.routers.checks import check_session_date_id
 
 router = APIRouter(prefix='/events', tags=['events'])
 
-@router.get("/", summary="Get events", description="Retrieve all events with optional filters, including by patient code and session.")
+class SeizureTypeEnum(str, Enum):
+    focal = "focal"
+    aware = "aware"
+    motor = "motor"
+    automatisms = "automatisms"
+    impaired_awareness = "impaired awareness"
+    tonic = "tonic"
+    to_bilateral_tonic_clonic = "to bilateral tonic-clonic"
+    generalized = "generalized"
+    absence = "absence"
+    tonic_clonic = "tonic-clonic"
+    non_motor = "non-motor"
+    behavior_arrest = "behavior arrest"
+
+
+@router.get("/", summary="Get events", description="Retrieve all events with optional filters, including by patient code, session, and event type.")
 def get_events(
     patient_code: Optional[str] = Query(None, description='4-letter code identifying the patient'),
     session_date: Optional[datetime] = Query(None, description='Session datetime (in the format YYYY-MM-DD HH:MM:SS) which should be within the range of start_time and end_time of desired session'),
     session_id: Optional[int] = Query(None, description='Session ID'),
+    event_types: Optional[list[SeizureTypeEnum]] = Query(None, description='List of seizure classifications (see class SeizureTypeEnum for options)'),
 ):
     """
     Retrieve all events with optional filters, including by patient code and session.
@@ -23,6 +40,7 @@ def get_events(
     - **patient_code**: 4-letter code identifying the patient
     - **session_date**: Session datetime (in the format YYYY-MM-DD HH:MM:SS) which should be within the range of start_time and end_time of desired session
     - **session_id**: Session ID
+    - **event_types**: List of seizure classifications (see class SeizureTypeEnum for options)
     """
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
@@ -33,10 +51,12 @@ def get_events(
             check_session_date_id(cursor, session_id, session_date)
             
         query = """
-            SELECT e.event_id, e.onset_time, e.offset_time, e.event_name, e.annotations
+            SELECT e.event_id, e.onset_time, e.offset_time, e.annotations
             FROM events e
             JOIN sessions s ON e.session_id=s.session_id
             JOIN patients p ON s.patient_id=p.patient_id
+            LEFT JOIN event_seizure_types et ON e.event_id=et.event_id 
+            LEFT JOIN seizure_types st ON et.seizure_type_id=st.seizure_type_id
             WHERE 1=1
         """
         params = []
@@ -52,6 +72,21 @@ def get_events(
         if session_id:
             query += " AND s.session_id = %s"
             params.append(session_id)
+
+        # Seizure types: require ALL specified types
+        if event_types:
+            placeholders = ', '.join(['%s'] * len(event_types))
+            subquery = f"""
+                SELECT et_inner.event_id
+                FROM event_seizure_types et_inner
+                JOIN seizure_types st_inner ON et_inner.seizure_type_id = st_inner.seizure_type_id
+                WHERE st_inner.name IN ({placeholders})
+                GROUP BY et_inner.event_id
+                HAVING COUNT(DISTINCT st_inner.name) = %s
+            """
+            query += f" AND e.event_id IN ({subquery})"
+            params.extend(event_types)
+            params.append(len(event_types))
 
         cursor.execute(query, params)
         results = cursor.fetchall()

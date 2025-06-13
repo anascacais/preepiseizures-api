@@ -73,7 +73,7 @@ CREATE TABLE IF NOT EXISTS events (
 
 CREATE TABLE seizure_types (
     seizure_type_id INT AUTO_INCREMENT PRIMARY KEY,
-    name ENUM("focal", "aware", "motor", "automatisms", "impaired awareness", "tonic", "to bilateral tonic-clonic", "generalized", "absence", "tonic-clonic", "non-motor", "behavior arrest") NOT NULL
+    name ENUM("focal", "aware", "motor", "automatisms", "impaired awareness", "tonic", "to bilateral tonic-clonic", "generalized", "absence", "tonic-clonic", "non-motor", "behavior arrest", "not seizure") NOT NULL
 );
 
 

@@ -1,10 +1,8 @@
 import os
 from dotenv import load_dotenv
 import mysql.connector
-from app.config import SMB_USER, SMB_PASSWORD, SMB_SHARE, DB_HOST, DB_USER, DB_PASSWORD, DB_NAME
+from config import SMB_USER, SMB_PASSWORD, SMB_SHARE, DB_HOST, DB_USER, DB_PASSWORD, DB_NAME
 import smbclient
-from pymediainfo import MediaInfo
-import tempfile
 
 load_dotenv()
 def get_db_connection():
