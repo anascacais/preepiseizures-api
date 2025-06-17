@@ -47,7 +47,7 @@ def import_sessions_from_csv(csv_path):
 
                 print(f"Imported session {start_time} from patient {patient_code} (ID: {session_id})")
             except mysql.connector.Error as err:
-                print(f"Error importing patient {start_time}from patient {patient_code}: {err}")
+                print(f"Error importing session {start_time} from patient {patient_code}: {err}")
     
     conn.commit()
     cursor.close()

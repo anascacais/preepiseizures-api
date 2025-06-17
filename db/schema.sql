@@ -60,7 +60,7 @@ CREATE TABLE IF NOT EXISTS records (
 
 CREATE TABLE IF NOT EXISTS events (
     event_id INT AUTO_INCREMENT PRIMARY KEY,
-    session_id INT,
+    session_id INT NOT NULL,
     onset_time DATETIME,
     offset_time DATETIME,
     annotations TEXT,
@@ -73,7 +73,7 @@ CREATE TABLE IF NOT EXISTS events (
 
 CREATE TABLE seizure_types (
     seizure_type_id INT AUTO_INCREMENT PRIMARY KEY,
-    name ENUM("focal", "aware", "motor", "automatisms", "impaired awareness", "tonic", "to bilateral tonic-clonic", "generalized", "absence", "tonic-clonic", "non-motor", "behavior arrest", "not seizure") NOT NULL
+    name ENUM("focal", "aware", "motor", "automatisms", "impaired awareness", "unknown awareness", "tonic", "to bilateral tonic-clonic", "generalized", "absence", "tonic-clonic", "non-motor", "behavior arrest", "not seizure", "seizure","subclinical") NOT NULL
 );
 
 
