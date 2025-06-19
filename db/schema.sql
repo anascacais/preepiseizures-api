@@ -71,16 +71,20 @@ CREATE TABLE IF NOT EXISTS events (
 );
 
 
-CREATE TABLE seizure_types (
-    seizure_type_id INT AUTO_INCREMENT PRIMARY KEY,
-    name ENUM("focal", "aware", "motor", "automatisms", "impaired awareness", "unknown awareness", "tonic", "to bilateral tonic-clonic", "generalized", "absence", "tonic-clonic", "non-motor", "behavior arrest", "not seizure", "seizure","subclinical") NOT NULL
+CREATE TABLE classifications (
+    classification_id INT AUTO_INCREMENT PRIMARY KEY,
+    name ENUM("seizure", "non-seizure", "subclinical", "electrographic", "non-electrographic",
+    "aware", "impaired awareness", "unknown awareness", 
+    "focal", "generalized", "to bilateral tonic-clonic", "tonic-clonic", "tonic", 
+    "motor", "non-motor", "automatisms", "behavior arrest", "absence"
+    ) NOT NULL
 );
 
 
-CREATE TABLE event_seizure_types (
+CREATE TABLE event_classifications (
     event_id INT,
-    seizure_type_id INT,
-    PRIMARY KEY (event_id, seizure_type_id),
+    classification_id INT,
+    PRIMARY KEY (event_id, classification_id),
     FOREIGN KEY (event_id) REFERENCES events(event_id),
-    FOREIGN KEY (seizure_type_id) REFERENCES seizure_types(seizure_type_id)
+    FOREIGN KEY (classification_id) REFERENCES classifications(classification_id)
 );

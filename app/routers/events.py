@@ -8,7 +8,7 @@ from typing import Optional
 # local
 from app.database import get_db_connection
 from app.routers.checks import check_session_date_id
-from app.routers.enums import SeizureTypeEnum
+from app.routers.enums import SeizureClassEnum
 
 router = APIRouter(prefix='/events', tags=['events'])
 
@@ -17,7 +17,7 @@ def get_events(
     patient_code: Optional[str] = Query(None, description='4-letter code identifying the patient'),
     session_date: Optional[datetime] = Query(None, description='Session datetime (in the format YYYY-MM-DD HH:MM:SS) which should be within the range of start_time and end_time of desired session'),
     session_id: Optional[int] = Query(None, description='Session ID'),
-    event_types: Optional[list[SeizureTypeEnum]] = Query(None, description='List of seizure classifications (see class SeizureTypeEnum for options)'),
+    event_types: Optional[list[SeizureClassEnum]] = Query(None, description='List of seizure classifications (see class SeizureClassEnum for options)'),
 ):
     """
     Retrieve all events with optional filters, including by patient code and session.
@@ -25,7 +25,7 @@ def get_events(
     - **patient_code**: 4-letter code identifying the patient
     - **session_date**: Session datetime (in the format YYYY-MM-DD HH:MM:SS) which should be within the range of start_time and end_time of desired session
     - **session_id**: Session ID
-    - **event_types**: List of seizure classifications (see class SeizureTypeEnum for options)
+    - **event_types**: List of seizure classifications (see class SeizureClassEnum for options)
     """
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
@@ -36,10 +36,12 @@ def get_events(
             check_session_date_id(cursor, session_id, session_date)
             
         query = """
-            SELECT e.event_id, e.onset_time, e.offset_time, e.annotations
+            SELECT e.event_id, e.onset_time, e.offset_time, e.annotations, GROUP_CONCAT(DISTINCT cl.name ORDER BY cl.name SEPARATOR ', ') AS classifications
             FROM events e
             JOIN sessions s ON e.session_id=s.session_id
             JOIN patients p ON s.patient_id=p.patient_id
+            JOIN event_classifications ec ON e.event_id=ec.event_id
+            JOIN classifications cl ON ec.classification_id=cl.classification_id
             WHERE 1=1
         """
         params = []
@@ -60,14 +62,14 @@ def get_events(
         if event_types:
             placeholders = ', '.join(['%s'] * len(event_types))
             subquery = f"""
-                SELECT et_inner.event_id
-                FROM event_seizure_types et_inner
-                JOIN seizure_types st_inner ON et_inner.seizure_type_id = st_inner.seizure_type_id
-                WHERE st_inner.name IN ({placeholders})
-                GROUP BY et_inner.event_id
-                HAVING COUNT(DISTINCT st_inner.name) = %s
+                SELECT ec_inner.event_id
+                FROM event_classifications ec_inner
+                JOIN classifications cl_inner ON ec_inner.classification_id = cl_inner.classification_id
+                WHERE cl_inner.name IN ({placeholders})
+                GROUP BY ec_inner.event_id
+                HAVING COUNT(DISTINCT cl_inner.name) = %s
             """
-            query += f" AND e.event_id IN ({subquery})"
+            query += f" AND e.event_id IN ({subquery}) GROUP BY e.event_id"
             params.extend(event_types)
             params.append(len(event_types))
 

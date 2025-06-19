@@ -4,21 +4,21 @@ from typing import Optional
 
 # local
 from app.database import get_db_connection
-from app.routers.enums import ModalityEnum, SeizureTypeEnum
+from app.routers.enums import ModalityEnum, SeizureClassEnum
 
 router = APIRouter(prefix='/sessions', tags=['sessions'])
 
 @router.get("/", summary="Get sessions", description="Retrieve all sessions with optional filters, including by patient code, event types, or modality.")
 def get_sessions(
     patient_code: Optional[str] = Query(None, description='4-letter code identifying the patient'),
-    event_types: Optional[list[SeizureTypeEnum]] = Query(None, description='List of seizure classifications (see class SeizureTypeEnum for options)'),
+    event_types: Optional[list[SeizureClassEnum]] = Query(None, description='List of seizure classifications (see class SeizureClassEnum for options)'),
     modality: Optional[ModalityEnum] = Query(None, description='Type of data modality (e.g., hospital_eeg, wearable, hospital_video, report)')
 ):
     """
     Retrieve all sessions for a patient.
 
     - **patient_code**: 4-letter code identifying the patient
-    - **event_types**: List of seizure classifications (see class SeizureTypeEnum for options)
+    - **event_types**: List of seizure classifications (see class SeizureClassEnum for options)
     - **modality**: Type of data modality (e.g., hospital_eeg, wearable, hospital_video, report)
     """
     conn = get_db_connection()
@@ -44,12 +44,12 @@ def get_sessions(
         if event_types:
             placeholders = ', '.join(['%s'] * len(event_types))
             subquery = f"""
-                SELECT et_inner.event_id
-                FROM event_seizure_types et_inner
-                JOIN seizure_types st_inner ON et_inner.seizure_type_id = st_inner.seizure_type_id
-                WHERE st_inner.name IN ({placeholders})
-                GROUP BY et_inner.event_id
-                HAVING COUNT(DISTINCT st_inner.name) = %s
+                SELECT ec_inner.event_id
+                FROM event_classifications ec_inner
+                JOIN classifications cl_inner ON ec_inner.classification_id = cl_inner.classification_id
+                WHERE cl_inner.name IN ({placeholders})
+                GROUP BY ec_inner.event_id
+                HAVING COUNT(DISTINCT cl_inner.name) = %s
             """
             query += f" AND e.event_id IN ({subquery})"
             params.extend(event_types)

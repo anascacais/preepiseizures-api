@@ -18,11 +18,11 @@ def get_db_connection():
 
 def get_or_create_event_type_id(cursor, name):
     name = name.strip().lower()
-    cursor.execute("SELECT seizure_type_id FROM seizure_types WHERE name = %s", (name,))
+    cursor.execute("SELECT classification_id FROM classifications WHERE name = %s", (name,))
     row = cursor.fetchone()
     if row:
         return row[0]
-    cursor.execute("INSERT INTO seizure_types (name) VALUES (%s)", (name,))
+    cursor.execute("INSERT INTO classifications (name) VALUES (%s)", (name,))
     return cursor.lastrowid
 
 
@@ -76,7 +76,7 @@ def import_events_from_csv(csv_path):
                 for etype in event_types:
                     event_type_id = get_or_create_event_type_id(cursor, etype)
                     cursor.execute(
-                        "INSERT IGNORE INTO event_seizure_types (event_id, seizure_type_id) VALUES (%s, %s)",
+                        "INSERT IGNORE INTO event_classifications (event_id, classification_id) VALUES (%s, %s)",
                         (event_id, event_type_id)
                     )
 

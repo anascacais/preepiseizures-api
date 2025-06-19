@@ -17,3 +17,5 @@ SMB_HOST = os.getenv("SMB_HOST")
 SMB_SHARE = os.getenv("SMB_SHARE")
 SMB_USER = os.getenv("SMB_USER")
 SMB_PASSWORD = os.getenv("SMB_PASSWORD")
+
+LOCAL_MNT = os.getenv("LOCAL_MNT")
