@@ -1,5 +1,5 @@
 # third-party
-from fastapi import APIRouter, Path, Query, HTTPException
+from fastapi import APIRouter, Path, Query, HTTPException, Depends
 from fastapi.responses import StreamingResponse
 import io
 import smbclient
@@ -8,12 +8,13 @@ import zipstream
 # local
 from app.database import get_db_connection
 from app.config import SMB_SHARE
+from app.routers.token import get_current_user
 
 
 router = APIRouter(prefix='/download', tags=['download'])
 
 @router.get("/{record_id}", summary="Download record", description="Download a single record by ID")
-def download_file(record_id: int = Path(..., description="Record ID")):
+def download_file(record_id: int = Path(..., description="Record ID"), user=Depends(get_current_user)):
     """
     Download a single record by ID.
 
@@ -32,8 +33,10 @@ def download_file(record_id: int = Path(..., description="Record ID")):
         if not entry:
             raise HTTPException(status_code=404, detail="File not found")
         
+        if entry["modality"] in ["hospital_video", "report"] and not user['can_access_sensitive']:
+            raise HTTPException(status_code=403, detail="Access to sensitive data denied.")
+        
         smb_path = rf"{SMB_SHARE}\{entry['smb_path']}"
-        file = f"{entry['file_name']}{entry['file_extension']}"
 
         with smbclient.open_file(smb_path, mode='rb') as remote_file:
             data = remote_file.read()
@@ -48,7 +51,7 @@ def download_file(record_id: int = Path(..., description="Record ID")):
 
 
 @router.get("/", summary="Download records", description="Download multiple records by ID into a zip")
-def download_files(record_ids: list[int] = Query(..., description="List with record IDs")):
+def download_files(record_ids: list[int] = Query(..., description="List with record IDs"), user=Depends(get_current_user)):
     """
     Download multiple records by ID into a zip. The zip maintains original directory structure.
 
@@ -71,8 +74,9 @@ def download_files(record_ids: list[int] = Query(..., description="List with rec
 
         # Add files to ZIP stream one by one
         for f in files:
+            if f["modality"] in ["hospital_video", "report"] and not user['can_access_sensitive']:
+                raise HTTPException(status_code=403, detail="Access to sensitive data denied.")
             smb_path = rf"{SMB_SHARE}\{f['smb_path']}"
-            #file = f"{f['file_name']}{f['file_extension']}"
 
             def file_generator(path):
                 with smbclient.open_file(path, mode='rb') as remote_file:

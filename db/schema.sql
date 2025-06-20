@@ -1,5 +1,6 @@
 CREATE TABLE users (
     id INT AUTO_INCREMENT PRIMARY KEY,
+    can_access_sensitive BOOLEAN NOT NULL,
     username VARCHAR(255) UNIQUE NOT NULL,
     hashed_password VARCHAR(255) NOT NULL,
     full_name VARCHAR(255),
