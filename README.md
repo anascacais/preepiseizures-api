@@ -1,4 +1,6 @@
-# 🏥 PreEpiSeizures API
+# PreEpiSeizures DB 🏥
+
+## A MySQL relational schema with a FastAPI layer exposing secure REST endpoints to health data
 
 This project provides a RESTful API to query metadata about hospital records. It connects to a MySQL database and can optionally retrieve records stored on a remote NAS via the SMB protocol.
 
