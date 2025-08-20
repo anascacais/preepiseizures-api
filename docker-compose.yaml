@@ -1,0 +1,9 @@
+services:
+  app:
+    build: .
+    container_name: preepiseizures-app
+    ports:
+      - "8000:8000"
+    network_mode: "host"
+    env_file:
+      - .env

@@ -23,11 +23,12 @@ Developed under the PreEpiSeizures project.
 
 ## 📦 Tech Stack
 
-- Python 3.9+
-- [FastAPI](https://fastapi.tiangolo.com/)
-- MySQL (8+)
+- Python 3.10+
+- FastAPI
+- MySQL
 - `python-dotenv` for config
-- `smbprotocol` (or `smbclient`) for NAS file access (optional)
+- `smbprotocol` for NAS file access (optional)
+- Docker & Docker Compose for containerized deployment
 
 ---
 
@@ -44,11 +45,6 @@ cd preepiseizures-api
 
 ```bash
 pipenv install
-```
-
-### 3. Activate the environment
-
-```bash
 pipenv shell
 ```
 
@@ -80,6 +76,12 @@ Or connect manually and paste the contents of schema.sql.
 
 ```bash
 pipenv run uvicorn app.main:app --host 0.0.0.0 --port 8000
+```
+
+### (Optional) Using Docker Compose
+
+```bash
+docker compose up --build
 ```
 
 Access the docs at: http://localhost:8000/docs

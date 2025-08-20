@@ -1,0 +1,41 @@
+# Python cache / bytecode
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.pyd
+*.pyc
+*.pyo
+
+# Virtual environments
+.env
+.env.*
+
+# Package managers
+*.egg-info/
+.eggs/
+dist/
+build/
+
+# Git / VCS
+.git
+.gitignore
+
+# OS / editor
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*.idea/
+.vscode/
+
+# Data and DB files (if they are runtime only, not needed in image)
+data/
+db/
+scripts/
+
+# Logs
+*.log
+
+# Tests (only if not needed inside image)
+tests/
