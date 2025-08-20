@@ -17,7 +17,6 @@ Developed under the PreEpiSeizures project.
 - Download records from a remote SMB/NAS server (optional)
 - Environment-variable-based configuration using `.env` file
 - Designed to run on a secure internal server or work tower
-- FastAPI-based backend, ready to be containerized
 
 ---
 
