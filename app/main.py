@@ -18,7 +18,7 @@ app = FastAPI(
     title="PreEpiSeizuresAPI",
     description=description,
     summary="RESTful API to query metadata about hospital records.",
-    version="1.0.0",
+    version="2.0.0",
     contact={
         "name": "Ana Sofia Carmo",
         "email": "anascacais@gmail.com",
