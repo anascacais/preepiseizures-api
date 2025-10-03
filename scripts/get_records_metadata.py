@@ -55,6 +55,12 @@ def _get_session_id_from_patient(cursor, code, file):
         return session_ids[0]
     
     print(f"Multiple sessions found for {file} (patient {code}):")
+    if code == 'IQCX':
+        if 'EEG' in file.upper():
+            return session_ids[0]
+        elif 'A2021' in file.upper():
+            return session_ids[1]
+        
     for idx, sid in enumerate(session_ids):
         print(f"{idx + 1}. {rows[idx]}")
     
@@ -101,6 +107,17 @@ def _get_times_from_file(filepath, file):
 
     else:
         return None, None
+    
+
+def file_exists(cursor, session_id, file_name, file_extension):
+    query = """
+        SELECT record_id 
+        FROM records 
+        WHERE session_id = %s AND file_name = %s AND file_extension = %s
+        LIMIT 1
+    """
+    cursor.execute(query, (session_id, file_name, file_extension))
+    return cursor.fetchone() is not None
 
 
 conn = get_db_connection()
@@ -112,7 +129,7 @@ smbclient.ClientConfig(username=SMB_USER, password=SMB_PASSWORD)
 patient_list = smbclient.listdir(rf"{SMB_SHARE}")
 
 
-for pat in patient_list[25:]: #################### TEMPORARY
+for pat in patient_list: 
 
     patient_dir = rf"{SMB_SHARE}\{pat}"
 
@@ -129,22 +146,27 @@ for pat in patient_list[25:]: #################### TEMPORARY
         for file in file_list:
             session_id = _get_session_id_from_patient(cursor, pat, file)
             file_name, file_extension, modality = _get_metadata_from_name(file)
-            smb_path = rf"{pat}\{dir}\{file}"
-            start_time, end_time = _get_times_from_file(os.path.join('/'.join(LOCAL_MNT.split('\\')), pat, dir, file), file)
+            
+            if file_exists(cursor, session_id, file_name, file_extension):
+                print(f"File {file_name}.{file_extension} already exists in database.")
+            else:
+                smb_path = rf"{pat}\{dir}\{file}"
+                start_time, end_time = _get_times_from_file(os.path.join('/'.join(LOCAL_MNT.split('\\')), pat, dir, file), file)
 
-            try:
-                cursor.execute(
-                    """
-                    INSERT INTO records (session_id, file_name, file_extension, smb_path, modality, start_time, end_time)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s)
-                    """,
-                    (session_id, file_name, file_extension, smb_path, modality, start_time, end_time)
-                )
-                record_id = cursor.lastrowid
+            
+                try:
+                    cursor.execute(
+                        """
+                        INSERT INTO records (session_id, file_name, file_extension, smb_path, modality, start_time, end_time)
+                        VALUES (%s, %s, %s, %s, %s, %s, %s)
+                        """,
+                        (session_id, file_name, file_extension, smb_path, modality, start_time, end_time)
+                    )
+                    record_id = cursor.lastrowid
 
-                print(f"Imported record {smb_path} (ID: {record_id})")
-            except mysql.connector.Error as err:
-                print(f"Error importing record {file}: {err}")
+                    print(f"Imported record {smb_path} (ID: {record_id})")
+                except mysql.connector.Error as err:
+                    print(f"Error importing record {file}: {err}")
     
 conn.commit()
 cursor.close()
