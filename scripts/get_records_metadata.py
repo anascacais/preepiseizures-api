@@ -6,6 +6,7 @@ import smbclient
 import re
 from datetime import datetime, timedelta
 import ast 
+from smbprotocol.exceptions import SMBOSError
 
 
 load_dotenv()
@@ -133,7 +134,11 @@ for pat in patient_list:
 
     patient_dir = rf"{SMB_SHARE}\{pat}"
 
-    directory_list = smbclient.listdir(patient_dir)
+    try:
+        directory_list = smbclient.listdir(patient_dir)
+    except SMBOSError as e:
+        print(f"Error accessing patient directory {patient_dir}: {e}")
+        continue
     
     for dir in directory_list:
         
